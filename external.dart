@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(AnimationApp());
+void main() {
+  runApp(Animation_App());
+}
 
-class AnimationApp extends StatelessWidget {
-  const AnimationApp({super.key});
+class Animation_App extends StatelessWidget {
+  const Animation_App({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Animations',
+      title: 'Animated Styles',
       debugShowCheckedModeBanner: false,
       home: AnimationExample(),
     );
@@ -24,107 +26,81 @@ class AnimationExample extends StatefulWidget {
 
 class _AnimationExampleState extends State<AnimationExample>
     with SingleTickerProviderStateMixin {
-  bool _fadeVisible = false;
-  bool _slideVisible = false;
-  late AnimationController _controller;
-  late Animation<Offset> _slideAnimation;
+  bool fade = false, slide = false;
+  late AnimationController controller;
+  late Animation<Offset> slideAnim;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
-  }
-
-  void _toggleFade() => setState(() => _fadeVisible = !_fadeVisible);
-
-  void _toggleSlide() {
-    setState(() {
-      _slideVisible = !_slideVisible;
-      _slideVisible ? _controller.forward() : _controller.reverse();
-    });
+    slideAnim = Tween(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  void dispose() => controller.dispose();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Fade & Slide Animations"),
-        backgroundColor: Colors.yellowAccent,
-      ),
+      appBar: AppBar(title: const Text("Fade & Slide Animations")),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(50),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // Fade Animation Column
             Column(
               children: [
                 ElevatedButton(
-                  onPressed: _toggleFade,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.lightGreenAccent,
-                  ),
-                  child: Text(_fadeVisible ? "Hide Fade Box" : "Show Fade Box"),
+                  onPressed: () => setState(() => fade = !fade),
+                  child: Text(fade ? "Hide Fade Box" : "Show Fade Box"),
                 ),
                 const SizedBox(height: 20),
                 AnimatedOpacity(
-                  opacity: _fadeVisible ? 1.0 : 0.0,
+                  opacity: fade ? 1 : 0,
                   duration: const Duration(seconds: 1),
-                  child: Container(
-                    width: 150,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.lightGreenAccent,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Center(child: Text("Fade Box")),
-                  ),
+                  child: buildBox("Fade Box", Colors.greenAccent),
                 ),
               ],
             ),
-
-            // Slide Animation Column
             Column(
               children: [
                 ElevatedButton(
-                  onPressed: _toggleSlide,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange[300],
-                  ),
-                  child: Text(_slideVisible ? "Hide Slide Box" : "Show Slide Box"),
+                  onPressed: () {
+                    setState(() => slide = !slide);
+                    slide ? controller.forward() : controller.reverse();
+                  },
+                  child: Text(slide ? "Hide Slide Box" : "Show Slide Box"),
                 ),
                 const SizedBox(height: 20),
                 SlideTransition(
-                  position: _slideAnimation,
-                  child: Container(
-                    width: 150,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.orange[300],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Center(child: Text("Slide Box")),
-                  ),
+                  position: slideAnim,
+                  child: buildBox("Slide Box", Colors.orangeAccent),
                 ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildBox(String text, Color color) {
+    return Container(
+      width: 150,
+      height: 100,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
     );
